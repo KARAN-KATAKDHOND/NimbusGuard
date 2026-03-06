@@ -20,7 +20,7 @@ export default function Home() {
 
         <div className="pt-8 space-y-4">
           <Link 
-            href="/dashboard"
+            href="/login"
             className="flex w-full items-center justify-center rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-500"
           >
             Log in to Dashboard
