@@ -3,23 +3,23 @@
 import { useState, useEffect } from 'react';
 import CostChart from '@/components/CostChart';
 import AnomalyAlert from '@/components/AnomalyAlert';
-import { Server, Activity, RefreshCw, Loader2 } from 'lucide-react';
+import { Server, Activity, RefreshCw, Loader2, AlertTriangle } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { db } from '@/lib/firebaseClient';
 import { collection, query, where, orderBy, limit, onSnapshot } from 'firebase/firestore';
-import { DailyCostMetric } from '@/types'; // Assuming you created the types file!
+import { DailyCostMetric } from '@/types'; 
 
 export default function DashboardOverview() {
   const { user } = useAuth();
   const [metrics, setMetrics] = useState<DailyCostMetric[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
-  // Fetch data in real-time from Firestore
+  // REAL-TIME DATA FETCHING
   useEffect(() => {
     if (!user) return;
 
-    // Get the last 7 days of costs for this user
     const q = query(
       collection(db, "daily_cost_metrics"),
       where("user_uid", "==", user.uid),
@@ -27,15 +27,26 @@ export default function DashboardOverview() {
       limit(7)
     );
 
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const fetchedData = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })) as DailyCostMetric[];
-      
-      setMetrics(fetchedData);
-      setIsLoading(false);
-    });
+    // onSnapshot automatically updates the UI the millisecond the database changes
+    const unsubscribe = onSnapshot(
+      q, 
+      (snapshot) => {
+        const fetchedData = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        })) as DailyCostMetric[];
+        
+        setMetrics(fetchedData);
+        setIsLoading(false);
+        setFetchError(null);
+      },
+      (error) => {
+        console.error("Firestore Error:", error);
+        // If it's an index error, Firebase provides a direct link to build it in the console
+        setFetchError(error.message);
+        setIsLoading(false);
+      }
+    );
 
     return () => unsubscribe();
   }, [user]);
@@ -43,60 +54,49 @@ export default function DashboardOverview() {
   const handleSyncData = async () => {
     if (!user) return;
     setIsSyncing(true);
+    setFetchError(null);
     try {
-      // Trigger our backend to pull fresh data from AWS
       const res = await fetch('/api/analyze-costs', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: user.uid })
       });
       
-      if (!res.ok) throw new Error("Sync failed");
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Sync failed");
       
-      // We don't need to manually update state here because our onSnapshot 
-      // listener above will automatically detect the new Firestore documents!
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to sync:", error);
-      alert("Failed to sync data with AWS.");
+      setFetchError(error.message || "Failed to sync data with AWS.");
     } finally {
       setIsSyncing(false);
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-full min-h-[400px]">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
-      </div>
-    );
-  }
-
-  // Calculate stats based on the fetched data
   const latestMetric = metrics[metrics.length - 1];
   const isAnomaly = latestMetric?.is_anomaly || false;
   const latestCost = latestMetric?.total_cost || 0;
   
-  // Format data for the Recharts component
   const chartData = metrics.map(m => ({
     date: typeof m.date === 'string' ? m.date : new Date(m.date as any).toLocaleDateString(),
     cost: m.total_cost
   }));
 
-  // Sort services by cost (highest first)
   const serviceBreakdown = latestMetric?.service_breakdown 
     ? Object.entries(latestMetric.service_breakdown).sort((a, b) => b[1] - a[1])
     : [];
 
   return (
     <>
+      {/* HEADER LOADS INSTANTLY */}
       <header className="mb-8 flex justify-between items-end">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-gray-900">Workspace Overview</h1>
-          <p className="text-gray-500 mt-1">Production AWS Account</p>
+          <p className="text-gray-500 mt-1">Live Cloud Cost Analysis</p>
         </div>
         <button 
           onClick={handleSyncData}
-          disabled={isSyncing}
+          disabled={isSyncing || isLoading}
           className="flex items-center bg-white border border-gray-200 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors shadow-sm disabled:opacity-50"
         >
           <RefreshCw className={`w-4 h-4 mr-2 text-gray-500 ${isSyncing ? 'animate-spin' : ''}`} />
@@ -104,17 +104,38 @@ export default function DashboardOverview() {
         </button>
       </header>
 
-      {isAnomaly && latestMetric && (
+      {/* ERROR HANDLING - Specially useful for catching missing Firebase Indexes */}
+      {fetchError && (
+        <div className="mb-8 bg-red-50 border border-red-200 p-4 rounded-lg flex items-start text-red-800 text-sm">
+          <AlertTriangle className="w-5 h-5 mr-3 flex-shrink-0 text-red-500" />
+          <div className="break-all">
+            <span className="font-semibold">Data Fetch Error: </span> 
+            {fetchError} 
+            {fetchError.includes("index") && (
+              <p className="mt-2 font-medium">Open your browser console (F12) to click the Firebase Index creation link!</p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {isAnomaly && latestMetric && !isLoading && (
         <AnomalyAlert cost={latestCost} serviceName={serviceBreakdown[0]?.[0] || "Multiple Services"} />
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2">
-           {metrics.length > 0 ? (
+           {isLoading ? (
+             // SKELETON LOADER FOR CHART
+             <div className="h-96 w-full bg-gray-100 animate-pulse rounded-xl border border-gray-200 flex items-center justify-center">
+                <Loader2 className="w-8 h-8 text-gray-400 animate-spin" />
+             </div>
+           ) : metrics.length > 0 ? (
              <CostChart data={chartData} />
            ) : (
-             <div className="h-96 w-full bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center justify-center text-gray-500">
-               No cost data available. Click "Sync AWS Data" to pull from your AWS account.
+             <div className="h-96 w-full bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center justify-center text-gray-500">
+               <Activity className="w-12 h-12 text-gray-300 mb-4" />
+               <p>No cost data available.</p>
+               <p className="text-sm">Click "Sync AWS Data" to pull your billing history.</p>
              </div>
            )}
         </div>
@@ -126,7 +147,12 @@ export default function DashboardOverview() {
           </h3>
           
           <div className="space-y-3 flex-1 overflow-y-auto max-h-64 pr-2">
-            {serviceBreakdown.length > 0 ? (
+            {isLoading ? (
+              // SKELETON LOADER FOR SERVICES
+              [1, 2, 3].map(i => (
+                <div key={i} className="h-12 bg-gray-100 animate-pulse rounded-lg w-full"></div>
+              ))
+            ) : serviceBreakdown.length > 0 ? (
               serviceBreakdown.map(([serviceName, cost], index) => (
                 <div key={serviceName} className={`flex justify-between items-center p-3 rounded-lg border ${index === 0 && isAnomaly ? 'bg-red-50 border-red-100' : 'bg-gray-50 border-gray-100'}`}>
                   <span className={`font-medium ${index === 0 && isAnomaly ? 'text-red-900' : 'text-gray-700'}`}>
@@ -150,11 +176,13 @@ export default function DashboardOverview() {
             <div className="text-sm space-y-2">
               <div className="flex justify-between">
                 <span className="text-gray-500">Firestore DB</span>
-                <span className="text-green-600 font-medium">Connected</span>
+                <span className={`font-medium ${fetchError ? 'text-red-600' : 'text-green-600'}`}>
+                  {fetchError ? 'Error' : 'Connected'}
+                </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500">AWS Cost API</span>
-                <span className="text-green-600 font-medium">Live Connection</span>
+                <span className="text-gray-500">Live Sync</span>
+                <span className="text-green-600 font-medium">Active</span>
               </div>
             </div>
           </div>

@@ -123,12 +123,15 @@ export async function POST(request: Request) {
     });
 
     // If there is an anomaly, log an official report
+// If there is an anomaly, log an official report AND send notifications
     if (isAnomaly) {
       // Find the service that caused the spike
       const sortedServices = Object.entries(latestDay.service_breakdown)
         .sort((a, b) => b[1] - a[1]);
       const primaryService = sortedServices.length > 0 ? sortedServices[0][0] : "Multiple_Services";
+      const severity = latestDay.total_cost > (baselineAverage * 2) ? "Critical" : "High";
 
+      // 1. Save to Database
       const reportRef = db.collection('anomaly_reports').doc(`${connectionId}_${latestDay.date}`);
       batch.set(reportRef, {
         user_id: userId,
@@ -137,10 +140,56 @@ export async function POST(request: Request) {
         actual_cost: latestDay.total_cost,
         expected_cost: baselineAverage,
         implicated_service: primaryService,
-        severity: latestDay.total_cost > (baselineAverage * 2) ? "Critical" : "High",
+        severity: severity,
         status: "Investigating"
       });
+
+      // 2. Fetch User Settings for Notifications
+      const userDoc = await db.collection('users').doc(userId).get();
+      const userSettings = userDoc.data()?.alert_preferences;
+
+      // 3. Trigger Slack Webhook if configured
+      if (userSettings?.slack_webhook_url) {
+        const slackMessage = {
+          blocks: [
+            {
+              type: "header",
+              text: { type: "plain_text", text: "🚨 NimbusGuard Cost Anomaly", emoji: true }
+            },
+            {
+              type: "section",
+              text: {
+                type: "mrkdwn",
+                text: `A *${severity}* cost spike was just detected on your AWS account.`
+              }
+            },
+            {
+              type: "section",
+              fields: [
+                { type: "mrkdwn", text: `*Service:*\n${primaryService.replace(/_/g, ' ')}` },
+                { type: "mrkdwn", text: `*Actual Cost:*\n$${latestDay.total_cost.toFixed(2)}` },
+                { type: "mrkdwn", text: `*Expected Avg:*\n$${baselineAverage.toFixed(2)}` },
+                { type: "mrkdwn", text: `*Date:*\n${latestDay.date}` }
+              ]
+            }
+          ]
+        };
+
+        try {
+          await fetch(userSettings.slack_webhook_url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(slackMessage)
+          });
+          console.log("Slack alert sent successfully!");
+        } catch (slackError) {
+          console.error("Failed to send Slack alert:", slackError);
+        }
+      }
     }
+
+    // Commit all database writes at once
+    await batch.commit();
 
     // Commit all database writes at once
     await batch.commit();
