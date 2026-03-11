@@ -5,6 +5,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { db } from '@/lib/firebaseClient';
 import { collection, query, where, orderBy, onSnapshot } from 'firebase/firestore';
 import { ShieldCheck, AlertOctagon, TrendingUp, Activity, Loader2, ArrowRight } from 'lucide-react';
+import { formatCurrency, formatDate } from '@/utils/formatters';
 
 // You can move this to your @/types file later!
 export interface AnomalyReport {
@@ -57,17 +58,6 @@ export default function AnomaliesPage() {
 
     return () => unsubscribe();
   }, [user]);
-
-  // --- HELPER FUNCTIONS ---
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
-  };
-
-  const formatDate = (isoString: string) => {
-    return new Date(isoString).toLocaleString('en-US', {
-      month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit'
-    });
-  };
 
   const getSeverityStyles = (severity: string) => {
     switch (severity.toLowerCase()) {

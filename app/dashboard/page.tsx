@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import CostChart from '@/components/CostChart';
-import AnomalyAlert from '@/components/AnomalyAlert';
+import CostChart from '@/components/features/dashboard/CostChart';
+import AnomalyAlert from '@/components/features/anomalies/AnomalyAlert';
 import { Server, Activity, RefreshCw, Loader2, AlertTriangle } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { db } from '@/lib/firebaseClient';
