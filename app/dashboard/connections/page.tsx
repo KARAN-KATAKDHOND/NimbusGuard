@@ -184,14 +184,22 @@ export default function ConnectionsPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">AWS Account ID</label>
-                <input 
-                  type="text" required placeholder="12-digit number" pattern="\\d{12}"
-                  value={formData.aws_account_id}
-                  onChange={(e) => setFormData({...formData, aws_account_id: e.target.value})}
-                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-                />
-              </div>
+  <label className="block text-sm font-medium text-gray-700 mb-1">AWS Account ID</label>
+  <input 
+    type="text" 
+    required 
+    placeholder="12-digit number" 
+    pattern="\d{12}"
+    title="Must be a 12-digit AWS Account ID"
+    value={formData.aws_account_id}
+    onChange={(e) => {
+      // Automatically remove any hyphens, spaces, or non-digit characters
+      const cleanId = e.target.value.replace(/\D/g, '');
+      setFormData({...formData, aws_account_id: cleanId});
+    }}
+    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+  />
+</div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">IAM Role ARN</label>
                 <input 
