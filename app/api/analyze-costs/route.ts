@@ -191,9 +191,6 @@ export async function POST(request: Request) {
     // Commit all database writes at once
     await batch.commit();
 
-    // Commit all database writes at once
-    await batch.commit();
-
     return NextResponse.json({ 
       success: true, 
       message: "Data synced successfully!",

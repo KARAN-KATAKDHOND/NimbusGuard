@@ -1,7 +1,31 @@
+"use client";
+
 import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
 import { LayoutDashboard, Cloud, AlertTriangle, Settings, LogOut } from 'lucide-react';
+import { auth } from '@/lib/firebaseClient';
+import { signOut } from 'firebase/auth';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const router = useRouter();
+
+  const handleSignOut = async () => {
+    try {
+      await signOut(auth);
+      router.push('/login');
+    } catch (error) {
+      console.error("Error signing out: ", error);
+    }
+  };
+
+  const navItems = [
+    { name: 'Overview', href: '/dashboard', icon: LayoutDashboard },
+    { name: 'AWS Connections', href: '/dashboard/connections', icon: Cloud },
+    { name: 'Anomaly Reports', href: '/dashboard/anomalies', icon: AlertTriangle },
+    { name: 'Settings', href: '/dashboard/settings', icon: Settings },
+  ];
+
   return (
     <div className="flex h-screen bg-gray-50 text-gray-900 font-sans">
       {/* Sidebar Navigation */}
@@ -11,23 +35,32 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <h2 className="text-xl font-bold text-blue-600 tracking-tight">NimbusGuard</h2>
           </div>
           <nav className="p-4 space-y-1">
-            <Link href="/dashboard" className="flex items-center px-4 py-3 text-sm font-medium text-blue-700 bg-blue-50 rounded-lg">
-              <LayoutDashboard className="w-5 h-5 mr-3" /> Overview
-            </Link>
-            <Link href="/dashboard/connections" className="flex items-center px-4 py-3 text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg transition-colors">
-              <Cloud className="w-5 h-5 mr-3" /> AWS Connections
-            </Link>
-            <Link href="/dashboard/anomalies" className="flex items-center px-4 py-3 text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg transition-colors">
-              <AlertTriangle className="w-5 h-5 mr-3" /> Anomaly Reports
-            </Link>
-            <Link href="/dashboard/settings" className="flex items-center px-4 py-3 text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg transition-colors">
-              <Settings className="w-5 h-5 mr-3" /> Settings
-            </Link>
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = pathname === item.href;
+
+              return (
+                <Link 
+                  key={item.name}
+                  href={item.href} 
+                  className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
+                    isActive 
+                      ? 'text-blue-700 bg-blue-50' 
+                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' 
+                  }`}
+                >
+                  <Icon className="w-5 h-5 mr-3" /> {item.name}
+                </Link>
+              );
+            })}
           </nav>
         </div>
         
         <div className="p-4 border-t border-gray-200">
-          <button className="flex w-full items-center px-4 py-2 text-sm font-medium text-gray-600 hover:text-red-600 transition-colors">
+          <button 
+            onClick={handleSignOut}
+            className="flex w-full items-center px-4 py-2 text-sm font-medium text-gray-600 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors"
+          >
             <LogOut className="w-5 h-5 mr-3" /> Sign out
           </button>
         </div>

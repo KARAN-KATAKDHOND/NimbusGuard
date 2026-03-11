@@ -6,7 +6,8 @@ import AnomalyAlert from '@/components/AnomalyAlert';
 import { Server, Activity, RefreshCw, Loader2, AlertTriangle } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { db } from '@/lib/firebaseClient';
-import { collection, query, where, orderBy, limit, onSnapshot } from 'firebase/firestore';
+// All required Firebase imports are included
+import { collection, query, where, orderBy, limit, onSnapshot, setDoc, doc } from 'firebase/firestore';
 import { DailyCostMetric } from '@/types'; 
 
 export default function DashboardOverview() {
@@ -16,18 +17,60 @@ export default function DashboardOverview() {
   const [isSyncing, setIsSyncing] = useState(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
 
-  // REAL-TIME DATA FETCHING
+  // --- TEMPORARY DEMO FUNCTION ---
+  // Properly scoped inside the component to access 'user'
+  const injectWorstCaseAnomaly = async () => {
+    if (!user) return;
+    
+    const fakeDate = new Date().toISOString().split('T')[0]; 
+    const fakeId = `demo_nuke_${Date.now()}`;
+
+    try {
+      await setDoc(doc(db, "daily_cost_metrics", fakeId), {
+        user_uid: user.uid,
+        connection_id: "demo_connection",
+        date: fakeDate,
+        currency: "USD",
+        total_cost: 15420.50, 
+        service_breakdown: {
+          "Amazon_EC2": 14000.00, 
+          "AWS_Lambda": 1000.00,
+          "Amazon_S3": 420.50
+        },
+        is_anomaly: true,
+        updated_at: new Date().toISOString()
+      });
+
+      await setDoc(doc(db, "anomaly_reports", fakeId), {
+        user_id: user.uid,
+        connection_id: "demo_connection",
+        detected_on: new Date().toISOString(),
+        actual_cost: 15420.50,
+        expected_cost: 45.50, 
+        implicated_service: "Amazon_EC2",
+        severity: "Critical",
+        status: "Investigating"
+      });
+
+      alert("🔥 Worst-case anomaly injected! Look at the charts.");
+    } catch (error) {
+      console.error("Failed to inject demo data:", error);
+    }
+  };
+
+  // --- REAL-TIME DATA FETCHING ---
+  // Strictly handles side-effects, correctly returning a cleanup function
   useEffect(() => {
     if (!user) return;
 
+    // Ordered by 'desc' to ensure the newly injected anomaly is fetched
     const q = query(
       collection(db, "daily_cost_metrics"),
       where("user_uid", "==", user.uid),
-      orderBy("date", "asc"),
+      orderBy("date", "desc"), 
       limit(7)
     );
 
-    // onSnapshot automatically updates the UI the millisecond the database changes
     const unsubscribe = onSnapshot(
       q, 
       (snapshot) => {
@@ -36,13 +79,13 @@ export default function DashboardOverview() {
           ...doc.data()
         })) as DailyCostMetric[];
         
-        setMetrics(fetchedData);
+        // Reverse data so the chart renders chronologically (left to right)
+        setMetrics(fetchedData.reverse());
         setIsLoading(false);
         setFetchError(null);
       },
       (error) => {
         console.error("Firestore Error:", error);
-        // If it's an index error, Firebase provides a direct link to build it in the console
         setFetchError(error.message);
         setIsLoading(false);
       }
@@ -51,6 +94,7 @@ export default function DashboardOverview() {
     return () => unsubscribe();
   }, [user]);
 
+  // --- MANUAL AWS SYNC ---
   const handleSyncData = async () => {
     if (!user) return;
     setIsSyncing(true);
@@ -73,6 +117,7 @@ export default function DashboardOverview() {
     }
   };
 
+  // --- UI DATA PREPARATION ---
   const latestMetric = metrics[metrics.length - 1];
   const isAnomaly = latestMetric?.is_anomaly || false;
   const latestCost = latestMetric?.total_cost || 0;
@@ -86,25 +131,34 @@ export default function DashboardOverview() {
     ? Object.entries(latestMetric.service_breakdown).sort((a, b) => b[1] - a[1])
     : [];
 
+  // --- MAIN COMPONENT UI ---
   return (
     <>
-      {/* HEADER LOADS INSTANTLY */}
       <header className="mb-8 flex justify-between items-end">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-gray-900">Workspace Overview</h1>
           <p className="text-gray-500 mt-1">Live Cloud Cost Analysis</p>
         </div>
-        <button 
-          onClick={handleSyncData}
-          disabled={isSyncing || isLoading}
-          className="flex items-center bg-white border border-gray-200 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors shadow-sm disabled:opacity-50"
-        >
-          <RefreshCw className={`w-4 h-4 mr-2 text-gray-500 ${isSyncing ? 'animate-spin' : ''}`} />
-          {isSyncing ? 'Syncing...' : 'Sync AWS Data'}
-        </button>
+        <div className="flex gap-3">
+          <button 
+            onClick={injectWorstCaseAnomaly}
+            className="flex items-center justify-center w-10 h-10 bg-red-50 text-red-500 hover:bg-red-100 hover:text-red-600 rounded-lg transition-colors border border-red-100"
+            title="Inject Fake Anomaly"
+          >
+            <AlertTriangle className="w-4 h-4" />
+          </button>
+
+          <button 
+            onClick={handleSyncData}
+            disabled={isSyncing || isLoading}
+            className="flex items-center bg-white border border-gray-200 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors shadow-sm disabled:opacity-50"
+          >
+            <RefreshCw className={`w-4 h-4 mr-2 text-gray-500 ${isSyncing ? 'animate-spin' : ''}`} />
+            {isSyncing ? 'Syncing...' : 'Sync AWS Data'}
+          </button>
+        </div>
       </header>
 
-      {/* ERROR HANDLING - Specially useful for catching missing Firebase Indexes */}
       {fetchError && (
         <div className="mb-8 bg-red-50 border border-red-200 p-4 rounded-lg flex items-start text-red-800 text-sm">
           <AlertTriangle className="w-5 h-5 mr-3 flex-shrink-0 text-red-500" />
@@ -125,7 +179,6 @@ export default function DashboardOverview() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2">
            {isLoading ? (
-             // SKELETON LOADER FOR CHART
              <div className="h-96 w-full bg-gray-100 animate-pulse rounded-xl border border-gray-200 flex items-center justify-center">
                 <Loader2 className="w-8 h-8 text-gray-400 animate-spin" />
              </div>
@@ -148,7 +201,6 @@ export default function DashboardOverview() {
           
           <div className="space-y-3 flex-1 overflow-y-auto max-h-64 pr-2">
             {isLoading ? (
-              // SKELETON LOADER FOR SERVICES
               [1, 2, 3].map(i => (
                 <div key={i} className="h-12 bg-gray-100 animate-pulse rounded-lg w-full"></div>
               ))
