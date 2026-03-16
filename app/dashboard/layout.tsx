@@ -27,12 +27,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   ];
 
   return (
-    <div className="flex h-screen bg-gray-50 text-gray-900 font-sans">
-      {/* Sidebar Navigation */}
-      <aside className="w-64 bg-white border-r border-gray-200 flex flex-col justify-between">
+    <div className="flex h-screen bg-gray-50 dark:bg-slate-950 text-gray-900 dark:text-slate-100 font-sans transition-colors duration-200">
+      
+      <aside className="w-64 bg-white dark:bg-slate-900 border-r border-gray-200 dark:border-slate-800 flex flex-col justify-between transition-colors duration-200">
         <div>
-          <div className="h-16 flex items-center px-6 border-b border-gray-200">
-            <h2 className="text-xl font-bold text-blue-600 tracking-tight">NimbusGuard</h2>
+          <div className="h-16 flex items-center px-6 border-b border-gray-200 dark:border-slate-800">
+            <h2 className="text-xl font-bold text-blue-600 dark:text-blue-400 tracking-tight">NimbusGuard</h2>
           </div>
           <nav className="p-4 space-y-1">
             {navItems.map((item) => {
@@ -45,8 +45,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   href={item.href} 
                   className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
                     isActive 
-                      ? 'text-blue-700 bg-blue-50' 
-                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' 
+                      ? 'text-blue-700 bg-blue-50 dark:text-blue-400 dark:bg-blue-500/10' 
+                      : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800/50 hover:text-gray-900 dark:hover:text-gray-200' 
                   }`}
                 >
                   <Icon className="w-5 h-5 mr-3" /> {item.name}
@@ -56,10 +56,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </nav>
         </div>
         
-        <div className="p-4 border-t border-gray-200">
+        <div className="p-4 border-t border-gray-200 dark:border-slate-800">
           <button 
             onClick={handleSignOut}
-            className="flex w-full items-center px-4 py-2 text-sm font-medium text-gray-600 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors"
+            className="flex w-full items-center px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-red-50 dark:hover:bg-red-500/10 hover:text-red-600 dark:hover:text-red-400 rounded-lg transition-colors"
           >
             <LogOut className="w-5 h-5 mr-3" /> Sign out
           </button>

@@ -6,7 +6,6 @@ import { db } from "@/lib/firebaseClient";
 import { collection, addDoc, serverTimestamp, query, where, onSnapshot } from "firebase/firestore";
 import { useAuth } from "@/hooks/useAuth"; 
 
-// Define a TypeScript interface for our connection records
 interface CloudConnection {
   id: string;
   account_alias: string;
@@ -18,12 +17,10 @@ interface CloudConnection {
 export default function ConnectionsPage() {
   const { user } = useAuth(); 
   
-  // States for form handling
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [status, setStatus] = useState<{ type: 'success' | 'error' | null, message: string }>({ type: null, message: "" });
   const [copiedSection, setCopiedSection] = useState<string | null>(null);
   
-  // State for storing the fetched connections
   const [connections, setConnections] = useState<CloudConnection[]>([]);
   const [isLoadingConnections, setIsLoadingConnections] = useState(true);
 
@@ -64,7 +61,6 @@ export default function ConnectionsPage() {
   ]
 }`;
 
-  // Fetch connections in real-time
   useEffect(() => {
     if (!user) {
       setConnections([]);
@@ -72,10 +68,8 @@ export default function ConnectionsPage() {
       return;
     }
 
-    // Query Firestore for connections belonging ONLY to the logged-in user
     const q = query(collection(db, "cloud_connections"), where("user_uid", "==", user.uid));
     
-    // onSnapshot listens for real-time updates
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const fetchedConnections = snapshot.docs.map(doc => ({
         id: doc.id,
@@ -86,7 +80,6 @@ export default function ConnectionsPage() {
       setIsLoadingConnections(false);
     });
 
-    // Cleanup the listener when the component unmounts
     return () => unsubscribe();
   }, [user]);
 
@@ -106,7 +99,6 @@ export default function ConnectionsPage() {
     setStatus({ type: null, message: "" });
 
     try {
-      // 1. Save as pending
       const docRef = await addDoc(collection(db, "cloud_connections"), {
         provider: "AWS",
         account_alias: formData.account_alias,
@@ -119,7 +111,6 @@ export default function ConnectionsPage() {
 
       setStatus({ type: 'success', message: "Saved! Verifying with AWS..." });
 
-      // 2. Trigger verification
       const verifyRes = await fetch('/api/aws/verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -142,76 +133,74 @@ export default function ConnectionsPage() {
     }
   };
 
-  // Helper function to render the correct status badge
   const getStatusBadge = (status: string) => {
     switch(status) {
       case 'active':
-        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Active</span>;
+        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400 transition-colors">Active</span>;
       case 'pending':
-        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">Verifying...</span>;
+        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400 transition-colors">Verifying...</span>;
       case 'failed':
-        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">Failed</span>;
+        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400 transition-colors">Failed</span>;
       default:
-        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">{status}</span>;
+        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-slate-800 text-gray-800 dark:text-gray-300 transition-colors">{status}</span>;
     }
   };
 
   return (
     <div className="max-w-6xl mx-auto space-y-8">
       <header>
-        <h1 className="text-3xl font-bold tracking-tight text-gray-900">Cloud Connections</h1>
-        <p className="text-gray-500 mt-1">Connect your AWS environments to start monitoring costs.</p>
+        <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white transition-colors">Cloud Connections</h1>
+        <p className="text-gray-500 dark:text-gray-400 mt-1 transition-colors">Connect your AWS environments to start monitoring costs.</p>
       </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
         
-        {/* LEFT COLUMN: The Form */}
+        {/* LEFT COLUMN: The Form & Connections */}
         <div className="lg:col-span-2 space-y-6">
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-            <h2 className="text-lg font-semibold mb-4 text-gray-800 flex items-center">
+          <div className="bg-white dark:bg-slate-900 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-slate-800 transition-colors">
+            <h2 className="text-lg font-semibold mb-4 text-gray-800 dark:text-white flex items-center transition-colors">
               <Plus className="w-5 h-5 mr-2 text-blue-500" />
               Add Connection
             </h2>
             
             <form onSubmit={handleConnect} className="space-y-4">
                <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Account Alias</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 transition-colors">Account Alias</label>
                 <input 
                   type="text" required placeholder="e.g., Production Core"
                   value={formData.account_alias}
                   onChange={(e) => setFormData({...formData, account_alias: e.target.value})}
-                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  className="w-full px-4 py-2 bg-white dark:bg-slate-950 border border-gray-200 dark:border-slate-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors placeholder:text-gray-400 dark:placeholder:text-gray-600"
                 />
               </div>
               <div>
-  <label className="block text-sm font-medium text-gray-700 mb-1">AWS Account ID</label>
-  <input 
-    type="text" 
-    required 
-    placeholder="12-digit number" 
-    pattern="\d{12}"
-    title="Must be a 12-digit AWS Account ID"
-    value={formData.aws_account_id}
-    onChange={(e) => {
-      // Automatically remove any hyphens, spaces, or non-digit characters
-      const cleanId = e.target.value.replace(/\D/g, '');
-      setFormData({...formData, aws_account_id: cleanId});
-    }}
-    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-  />
-</div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 transition-colors">AWS Account ID</label>
+                <input 
+                  type="text" 
+                  required 
+                  placeholder="12-digit number" 
+                  pattern="\d{12}"
+                  title="Must be a 12-digit AWS Account ID"
+                  value={formData.aws_account_id}
+                  onChange={(e) => {
+                    const cleanId = e.target.value.replace(/\D/g, '');
+                    setFormData({...formData, aws_account_id: cleanId});
+                  }}
+                  className="w-full px-4 py-2 bg-white dark:bg-slate-950 border border-gray-200 dark:border-slate-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors placeholder:text-gray-400 dark:placeholder:text-gray-600"
+                />
+              </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">IAM Role ARN</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 transition-colors">IAM Role ARN</label>
                 <input 
                   type="text" required placeholder="arn:aws:iam::123456789012:role/NimbusGuard"
                   value={formData.aws_role_arn}
                   onChange={(e) => setFormData({...formData, aws_role_arn: e.target.value})}
-                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none font-mono text-sm"
+                  className="w-full px-4 py-2 bg-white dark:bg-slate-950 border border-gray-200 dark:border-slate-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none font-mono text-sm transition-colors placeholder:text-gray-400 dark:placeholder:text-gray-600"
                 />
               </div>
 
               {status.type && (
-                <div className={`p-3 rounded-lg text-sm flex items-start ${status.type === 'error' ? 'bg-red-50 text-red-700' : 'bg-green-50 text-green-700'}`}>
+                <div className={`p-3 rounded-lg text-sm flex items-start transition-colors ${status.type === 'error' ? 'bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-400' : 'bg-green-50 dark:bg-green-500/10 text-green-700 dark:text-green-400'}`}>
                   <AlertCircle className="w-4 h-4 mr-2 mt-0.5" />
                   {status.message}
                 </div>
@@ -227,38 +216,38 @@ export default function ConnectionsPage() {
           </div>
 
           {/* DYNAMIC ACTIVE CONNECTIONS LIST */}
-          <div className="bg-white p-0 rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-            <div className="p-6 border-b border-gray-100">
-              <h2 className="text-lg font-semibold text-gray-800 flex items-center">
-                <Cloud className="w-5 h-5 mr-2 text-gray-500" />
+          <div className="bg-white dark:bg-slate-900 p-0 rounded-xl shadow-sm border border-gray-100 dark:border-slate-800 overflow-hidden transition-colors">
+            <div className="p-6 border-b border-gray-100 dark:border-slate-800 transition-colors">
+              <h2 className="text-lg font-semibold text-gray-800 dark:text-white flex items-center transition-colors">
+                <Cloud className="w-5 h-5 mr-2 text-gray-500 dark:text-gray-400" />
                 Your Connections
               </h2>
             </div>
             
-            <div className="divide-y divide-gray-100">
+            <div className="divide-y divide-gray-100 dark:divide-slate-800 transition-colors">
               {isLoadingConnections ? (
                 <div className="p-6 flex justify-center text-gray-400">
                   <Loader2 className="w-6 h-6 animate-spin" />
                 </div>
               ) : connections.length === 0 ? (
-                <div className="p-6 text-center text-sm text-gray-500">
+                <div className="p-6 text-center text-sm text-gray-500 dark:text-gray-400 transition-colors">
                   No AWS accounts connected yet.
                 </div>
               ) : (
                 connections.map((conn) => (
-                  <div key={conn.id} className="p-6 flex items-center justify-between hover:bg-gray-50 transition-colors">
+                  <div key={conn.id} className="p-6 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-colors">
                     <div className="flex items-center">
-                      <div className="bg-orange-100 p-3 rounded-lg mr-4">
-                        <Server className="w-6 h-6 text-orange-600" />
+                      <div className="bg-orange-100 dark:bg-orange-500/20 p-3 rounded-lg mr-4 transition-colors">
+                        <Server className="w-6 h-6 text-orange-600 dark:text-orange-400" />
                       </div>
                       <div>
-                        <h3 className="font-semibold text-gray-900">{conn.account_alias}</h3>
-                        <p className="text-sm text-gray-500 font-mono mt-0.5">ID: {conn.aws_account_id}</p>
+                        <h3 className="font-semibold text-gray-900 dark:text-white transition-colors">{conn.account_alias}</h3>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 font-mono mt-0.5 transition-colors">ID: {conn.aws_account_id}</p>
                       </div>
                     </div>
                     <div className="flex flex-col items-end gap-2">
                       {getStatusBadge(conn.sync_status)}
-                      <button className="text-xs font-medium text-gray-400 hover:text-red-600 transition-colors">
+                      <button className="text-xs font-medium text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors">
                         Remove
                       </button>
                     </div>
@@ -271,20 +260,20 @@ export default function ConnectionsPage() {
 
         {/* RIGHT COLUMN: Instructions Panel */}
         <div className="lg:col-span-3">
-          <div className="bg-blue-50/50 p-6 rounded-xl border border-blue-100 h-full">
-            <h3 className="text-lg font-semibold text-blue-900 flex items-center mb-4">
-              <Info className="w-5 h-5 mr-2 text-blue-600" />
+          <div className="bg-blue-50/50 dark:bg-blue-900/10 p-6 rounded-xl border border-blue-100 dark:border-blue-900/30 h-full transition-colors">
+            <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-400 flex items-center mb-4 transition-colors">
+              <Info className="w-5 h-5 mr-2 text-blue-600 dark:text-blue-500" />
               How to create your IAM Role
             </h3>
             
-            <ol className="space-y-6 text-sm text-gray-700">
+            <ol className="space-y-6 text-sm text-gray-700 dark:text-gray-300 transition-colors">
               <li className="flex gap-3">
-                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold">1</span>
+                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold transition-colors">1</span>
                 <div>
-                  <p className="font-medium text-gray-900 mb-1">Create a Custom Trust Policy</p>
+                  <p className="font-medium text-gray-900 dark:text-white mb-1 transition-colors">Create a Custom Trust Policy</p>
                   <p className="mb-2">Go to AWS IAM {'>'} Roles {'>'} Create Role. Select "Custom trust policy" and paste this JSON:</p>
                   <div className="relative group">
-                    <pre className="bg-gray-900 text-gray-100 p-3 rounded-lg overflow-x-auto text-xs font-mono">
+                    <pre className="bg-gray-900 dark:bg-black/40 text-gray-100 p-3 rounded-lg overflow-x-auto text-xs font-mono border border-transparent dark:border-slate-800 transition-colors">
                       {trustPolicy}
                     </pre>
                     <button 
@@ -298,12 +287,12 @@ export default function ConnectionsPage() {
               </li>
 
               <li className="flex gap-3">
-                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold">2</span>
+                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold transition-colors">2</span>
                 <div>
-                  <p className="font-medium text-gray-900 mb-1">Add Cost Explorer Permissions</p>
+                  <p className="font-medium text-gray-900 dark:text-white mb-1 transition-colors">Add Cost Explorer Permissions</p>
                   <p className="mb-2">Click Next. Click "Create policy" (opens in new tab). Select JSON and paste this:</p>
                   <div className="relative group">
-                    <pre className="bg-gray-900 text-gray-100 p-3 rounded-lg overflow-x-auto text-xs font-mono">
+                    <pre className="bg-gray-900 dark:bg-black/40 text-gray-100 p-3 rounded-lg overflow-x-auto text-xs font-mono border border-transparent dark:border-slate-800 transition-colors">
                       {permissionPolicy}
                     </pre>
                     <button 
@@ -317,9 +306,9 @@ export default function ConnectionsPage() {
               </li>
 
               <li className="flex gap-3">
-                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold">3</span>
+                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold transition-colors">3</span>
                 <div>
-                  <p className="font-medium text-gray-900 mb-1">Name the Role & Copy ARN</p>
+                  <p className="font-medium text-gray-900 dark:text-white mb-1 transition-colors">Name the Role & Copy ARN</p>
                   <p>Name the policy "NimbusGuardPolicy", go back to your role, attach it, and name the role "NimbusGuardRole". Once created, copy the Role ARN and paste it in the form on the left.</p>
                 </div>
               </li>
