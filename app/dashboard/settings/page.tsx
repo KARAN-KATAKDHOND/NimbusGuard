@@ -1,133 +1,119 @@
 "use client";
 
-import { useState, useEffect } from 'react';
-import { Moon, Sun, Monitor, Type, Settings as SettingsIcon, Save } from 'lucide-react';
+import { Moon, Sun, Monitor, Type, Settings as SettingsIcon, CheckCircle2 } from 'lucide-react';
+import { useSettings } from '@/contexts/SettingsContexts';
+import { useState } from 'react';
 
 export default function SettingsPage() {
-  // Local state for the UI toggles
-  const [theme, setTheme] = useState<'light' | 'dark' | 'system'>('system');
-  const [fontSize, setFontSize] = useState<'sm' | 'base' | 'lg'>('base');
-  const [isSaving, setIsSaving] = useState(false);
+  const { theme, setTheme, fontSize, setFontSize } = useSettings();
+  const [showToast, setShowToast] = useState(false);
 
-  // Simulate saving preferences to a database or localStorage
-  const handleSavePreferences = () => {
-    setIsSaving(true);
-    setTimeout(() => {
-      // Here you would typically save to Firestore or localStorage
-      // localStorage.setItem('app-theme', theme);
-      // localStorage.setItem('app-font', fontSize);
-      setIsSaving(false);
-    }, 600);
+  const triggerToast = () => {
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 2500);
+  };
+
+  const handleThemeChange = (newTheme: 'light' | 'dark' | 'system') => {
+    setTheme(newTheme);
+    triggerToast();
+  };
+
+  const handleFontChange = (newSize: 'sm' | 'base' | 'lg') => {
+    setFontSize(newSize);
+    triggerToast();
   };
 
   return (
-    <div className="max-w-4xl mx-auto pb-12">
+    <div className="max-w-4xl mx-auto pb-12 relative">
+      
+      {/* Toast Notification */}
+      <div className={`fixed bottom-8 right-8 bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-4 py-3 rounded-lg shadow-xl flex items-center transition-all duration-300 z-50 ${showToast ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}`}>
+        <CheckCircle2 className="w-5 h-5 mr-2 text-green-400 dark:text-green-600" />
+        <span className="font-medium text-sm">Preferences updated</span>
+      </div>
+
       <header className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight text-gray-900 flex items-center">
+        <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white flex items-center transition-colors">
           <SettingsIcon className="w-8 h-8 mr-3 text-blue-500" />
           Preferences
         </h1>
-        <p className="text-gray-500 mt-2">
-          Customize your dashboard experience, including theme and typography.
+        <p className="text-gray-500 dark:text-gray-400 mt-2 transition-colors">
+          Customize your workspace experience. Changes are saved and applied automatically.
         </p>
       </header>
 
-      <div className="space-y-6">
+      <div className="space-y-8">
         {/* THEME SECTION */}
-        <section className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
-          <div className="mb-4">
-            <h2 className="text-lg font-semibold text-gray-900">Appearance</h2>
-            <p className="text-sm text-gray-500">Select your preferred color theme for the dashboard.</p>
+        <section className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl p-6 md:p-8 shadow-sm transition-colors">
+          <div className="mb-6">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Appearance</h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Select your preferred color theme for the dashboard.</p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <button
-              onClick={() => setTheme('light')}
-              className={`flex flex-col items-center justify-center p-4 rounded-lg border-2 transition-all ${
-                theme === 'light' ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'
-              }`}
-            >
-              <Sun className={`w-8 h-8 mb-2 ${theme === 'light' ? 'text-blue-600' : 'text-gray-500'}`} />
-              <span className={`font-medium ${theme === 'light' ? 'text-blue-700' : 'text-gray-700'}`}>Light</span>
-            </button>
-
-            <button
-              onClick={() => setTheme('dark')}
-              className={`flex flex-col items-center justify-center p-4 rounded-lg border-2 transition-all ${
-                theme === 'dark' ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'
-              }`}
-            >
-              <Moon className={`w-8 h-8 mb-2 ${theme === 'dark' ? 'text-blue-600' : 'text-gray-500'}`} />
-              <span className={`font-medium ${theme === 'dark' ? 'text-blue-700' : 'text-gray-700'}`}>Dark</span>
-            </button>
-
-            <button
-              onClick={() => setTheme('system')}
-              className={`flex flex-col items-center justify-center p-4 rounded-lg border-2 transition-all ${
-                theme === 'system' ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'
-              }`}
-            >
-              <Monitor className={`w-8 h-8 mb-2 ${theme === 'system' ? 'text-blue-600' : 'text-gray-500'}`} />
-              <span className={`font-medium ${theme === 'system' ? 'text-blue-700' : 'text-gray-700'}`}>System</span>
-            </button>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {[
+              { id: 'light', icon: Sun, label: 'Light' },
+              { id: 'dark', icon: Moon, label: 'Dark' },
+              { id: 'system', icon: Monitor, label: 'System' }
+            ].map((option) => {
+              const Icon = option.icon;
+              const isActive = theme === option.id;
+              
+              return (
+                <button
+                  key={option.id}
+                  onClick={() => handleThemeChange(option.id as any)}
+                  className={`relative flex flex-col items-center justify-center p-6 rounded-xl border-2 transition-all duration-200 ${
+                    isActive 
+                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-500/10' 
+                      : 'border-gray-200 dark:border-slate-700 hover:border-gray-300 dark:hover:border-slate-600 hover:bg-gray-50 dark:hover:bg-slate-800/50'
+                  }`}
+                >
+                  <Icon className={`w-8 h-8 mb-3 ${isActive ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500 dark:text-gray-400'}`} />
+                  <span className={`font-medium ${isActive ? 'text-blue-700 dark:text-blue-400' : 'text-gray-700 dark:text-gray-300'}`}>
+                    {option.label}
+                  </span>
+                  {isActive && (
+                    <div className="absolute top-3 right-3 bg-blue-500 text-white rounded-full p-0.5">
+                      <CheckCircle2 className="w-4 h-4" />
+                    </div>
+                  )}
+                </button>
+              );
+            })}
           </div>
         </section>
 
         {/* FONT SIZE SECTION */}
-        <section className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
-          <div className="mb-4">
-            <h2 className="text-lg font-semibold text-gray-900 flex items-center">
-              <Type className="w-5 h-5 mr-2 text-gray-500" />
-              Typography
+        <section className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl p-6 md:p-8 shadow-sm transition-colors">
+          <div className="mb-6">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
+              <Type className="w-5 h-5 mr-2 text-gray-500 dark:text-gray-400" />
+              Density & Typography
             </h2>
-            <p className="text-sm text-gray-500">Adjust the interface text size for better readability.</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Adjust the interface scale for better readability or to fit more data on screen.</p>
           </div>
 
-          <div className="flex bg-gray-100 p-1 rounded-lg w-full max-w-md">
-            <button
-              onClick={() => setFontSize('sm')}
-              className={`flex-1 py-2 text-sm font-medium rounded-md transition-colors ${
-                fontSize === 'sm' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              Small
-            </button>
-            <button
-              onClick={() => setFontSize('base')}
-              className={`flex-1 py-2 text-base font-medium rounded-md transition-colors ${
-                fontSize === 'base' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              Medium
-            </button>
-            <button
-              onClick={() => setFontSize('lg')}
-              className={`flex-1 py-2 text-lg font-medium rounded-md transition-colors ${
-                fontSize === 'lg' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              Large
-            </button>
+          <div className="flex flex-col sm:flex-row bg-gray-100 dark:bg-slate-950 p-1.5 rounded-xl w-full max-w-lg transition-colors">
+            {[
+              { id: 'sm', label: 'Compact' },
+              { id: 'base', label: 'Standard' },
+              { id: 'lg', label: 'Large' }
+            ].map((option) => (
+              <button
+                key={option.id}
+                onClick={() => handleFontChange(option.id as any)}
+                className={`flex-1 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 ${
+                  fontSize === option.id 
+                    ? 'bg-white dark:bg-slate-800 text-gray-900 dark:text-white shadow-sm ring-1 ring-gray-200 dark:ring-slate-700' 
+                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-200/50 dark:hover:bg-slate-900'
+                }`}
+              >
+                {option.label}
+              </button>
+            ))}
           </div>
         </section>
-
-        {/* SAVE BUTTON */}
-        <div className="flex justify-end pt-4">
-          <button
-            onClick={handleSavePreferences}
-            disabled={isSaving}
-            className="flex items-center px-6 py-2.5 bg-gray-900 text-white font-medium rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-70"
-          >
-            {isSaving ? (
-              <>Saving...</>
-            ) : (
-              <>
-                <Save className="w-4 h-4 mr-2" />
-                Save Preferences
-              </>
-            )}
-          </button>
-        </div>
       </div>
     </div>
   );

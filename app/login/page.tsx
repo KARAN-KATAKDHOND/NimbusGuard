@@ -4,8 +4,8 @@ import { useState } from "react";
 import { auth } from "@/lib/firebaseClient";
 import { GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword } from "firebase/auth";
 import { useRouter } from "next/navigation";
-import { CloudLightning, Mail, Lock } from "lucide-react";
-import Link from "next/link"; // Make sure to import Link
+import { CloudLightning, Mail, Lock, Cloud, Server, Activity } from "lucide-react"; // <-- Added icons
+import Link from "next/link";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -45,8 +45,18 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4">
-      <div className="max-w-md w-full bg-slate-900 border border-slate-800 p-8 rounded-2xl shadow-xl space-y-6">
+    <div className="relative min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4 overflow-hidden">
+      
+      {/* --- MINOR THEMATIC BACKGROUND ANIMATIONS --- */}
+      <div className="absolute inset-0 pointer-events-none flex justify-center items-center overflow-hidden z-0">
+        <Cloud className="absolute text-blue-500/5 w-64 h-64 top-10 -left-10 animate-pulse" style={{ animationDuration: '4s' }} />
+        <Server className="absolute text-blue-500/5 w-48 h-48 bottom-10 right-10 animate-pulse" style={{ animationDuration: '5s' }} />
+        <CloudLightning className="absolute text-blue-500/5 w-96 h-96 top-1/4 -right-20 animate-pulse" style={{ animationDuration: '6s' }} />
+        <Activity className="absolute text-blue-500/5 w-32 h-32 bottom-1/4 left-1/4 animate-pulse" style={{ animationDuration: '7s' }} />
+      </div>
+
+      {/* Z-10 ensures the form stays on top */}
+      <div className="relative z-10 max-w-md w-full bg-slate-900 border border-slate-800 p-8 rounded-2xl shadow-xl space-y-6">
         <div className="flex flex-col items-center justify-center text-center space-y-4">
           <div className="bg-blue-600 p-3 rounded-xl shadow-lg shadow-blue-500/30">
             <CloudLightning className="w-8 h-8 text-white" />
@@ -63,7 +73,6 @@ export default function LoginPage() {
           </div>
         )}
 
-        {/* Email/Password Login Form */}
         <form onSubmit={handleEmailLogin} className="space-y-4">
           <div className="space-y-3">
             <div className="relative">

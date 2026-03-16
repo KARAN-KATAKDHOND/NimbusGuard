@@ -134,7 +134,7 @@ export default function DashboardOverview() {
   // --- MAIN COMPONENT UI ---
   return (
     <>
-      <header className="mb-8 flex justify-between items-end">
+      <header className="mb-8 flex justify-between items-end" suppressHydrationWarning>
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-gray-900">Workspace Overview</h1>
           <p className="text-gray-500 mt-1">Live Cloud Cost Analysis</p>

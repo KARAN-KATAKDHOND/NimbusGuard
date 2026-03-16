@@ -5,11 +5,12 @@ import { auth, db } from "@/lib/firebaseClient";
 import { 
   GoogleAuthProvider, 
   signInWithPopup, 
-  createUserWithEmailAndPassword 
+  createUserWithEmailAndPassword,
+  updateProfile // <-- Added to fix the missing profile name issue
 } from "firebase/auth";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 import { useRouter } from "next/navigation";
-import { CloudLightning, Mail, Lock, User } from "lucide-react";
+import { CloudLightning, Mail, Lock, User, Cloud, Server, Activity } from "lucide-react"; // <-- Added extra icons for animation
 import Link from "next/link";
 
 export default function RegisterPage() {
@@ -34,7 +35,7 @@ export default function RegisterPage() {
         created_at: new Date().toISOString(),
         alert_preferences: {
           email_alerts: true,
-          slack_webhook_url: "" // Ready for them to add later in settings
+          slack_webhook_url: "" 
         },
         subscription_tier: "free"
       });
@@ -48,8 +49,16 @@ export default function RegisterPage() {
     setError("");
     
     try {
+      // 1. Create the user
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      // Save user to Firestore
+      
+      // 2. FIX: Explicitly update the Firebase Auth profile with the user's name
+      // (Google does this automatically, which is why Google worked but email didn't)
+      if (auth.currentUser) {
+        await updateProfile(auth.currentUser, { displayName: name });
+      }
+
+      // 3. Save user to Firestore
       await createUserDocument(userCredential.user.uid, email, name);
       
       router.push("/dashboard");
@@ -69,7 +78,6 @@ export default function RegisterPage() {
     
     try {
       const result = await signInWithPopup(auth, provider);
-      // Save user to Firestore (Google provides the display name)
       await createUserDocument(
         result.user.uid, 
         result.user.email, 
@@ -84,8 +92,18 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4">
-      <div className="max-w-md w-full bg-slate-900 border border-slate-800 p-8 rounded-2xl shadow-xl space-y-6">
+    <div className="relative min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4 overflow-hidden">
+      
+      {/* --- MINOR THEMATIC BACKGROUND ANIMATIONS --- */}
+      <div className="absolute inset-0 pointer-events-none flex justify-center items-center overflow-hidden z-0">
+        <Cloud className="absolute text-blue-500/5 w-64 h-64 top-10 -left-10 animate-pulse" style={{ animationDuration: '4s' }} />
+        <Server className="absolute text-blue-500/5 w-48 h-48 bottom-10 right-10 animate-pulse" style={{ animationDuration: '5s' }} />
+        <CloudLightning className="absolute text-blue-500/5 w-96 h-96 top-1/4 -right-20 animate-pulse" style={{ animationDuration: '6s' }} />
+        <Activity className="absolute text-blue-500/5 w-32 h-32 bottom-1/4 left-1/4 animate-pulse" style={{ animationDuration: '7s' }} />
+      </div>
+
+      {/* Z-10 ensures the form stays on top of the animations */}
+      <div className="relative z-10 max-w-md w-full bg-slate-900 border border-slate-800 p-8 rounded-2xl shadow-xl space-y-6">
         <div className="flex flex-col items-center justify-center text-center space-y-4">
           <div className="bg-blue-600 p-3 rounded-xl shadow-lg shadow-blue-500/30">
             <CloudLightning className="w-8 h-8 text-white" />
@@ -102,7 +120,6 @@ export default function RegisterPage() {
           </div>
         )}
 
-        {/* Registration Form */}
         <form onSubmit={handleEmailSignUp} className="space-y-4">
           <div className="space-y-3">
             <div className="relative">
@@ -144,7 +161,7 @@ export default function RegisterPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 text-white hover:bg-blue-700 px-4 py-3 rounded-lg font-semibold transition-colors disabled:opacity-50"
+            className="w-full bg-blue-600 text-white hover:bg-blue-700 px-4 py-3 rounded-lg font-semibold transition-colors disabled:opacity-50 relative overflow-hidden"
           >
             {loading ? "Creating Account..." : "Sign Up"}
           </button>
