@@ -57,12 +57,14 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     else if (fontSize === 'lg') root.style.fontSize = '18px';
   }, [fontSize, mounted]);
 
-  // Prevent hydration mismatch by not rendering until mounted
-  if (!mounted) return <>{children}</>;
-
+  // Always render the Provider so SSR does not crash.
+  // We use `display: contents` and visibility toggling to prevent a hydration flash 
+  // without breaking the DOM structure.
   return (
     <SettingsContext.Provider value={{ theme, setTheme, fontSize, setFontSize }}>
-      {children}
+      <div style={{ visibility: mounted ? 'visible' : 'hidden', display: 'contents' }}>
+        {children}
+      </div>
     </SettingsContext.Provider>
   );
 }

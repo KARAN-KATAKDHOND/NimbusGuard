@@ -12,7 +12,6 @@ import { AnomalyReport } from '../page';
 // Enhanced Mock Data Generator: Simulates granular resource changes
 const generateDetailedBreakdown = (totalCost: number, serviceName: string) => {
   const shortService = serviceName.replace('Amazon_', '').replace('AWS_', '');
-  
   return [
     { 
       region: 'us-east-1 (N. Virginia)', 
