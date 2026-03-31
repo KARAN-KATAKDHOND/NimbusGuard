@@ -25,9 +25,7 @@ export default function Home() {
           >
             Log in to Dashboard
           </Link>
-          <p className="text-slate-500 text-sm">
-            Demo Project for Cloud Computing
-          </p>
+          
         </div>
       </div>
     </div>
