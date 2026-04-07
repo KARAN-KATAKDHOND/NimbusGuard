@@ -1,10 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { auth, db } from "@/lib/firebaseClient";
 import { 
   GoogleAuthProvider, 
+  getRedirectResult,
   signInWithPopup, 
+  signInWithRedirect,
   createUserWithEmailAndPassword,
   updateProfile // <-- Added to fix the missing profile name issue
 } from "firebase/auth";
@@ -12,6 +14,7 @@ import { doc, setDoc, getDoc } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import { CloudLightning, Mail, Lock, User, Cloud, Server, Activity } from "lucide-react"; // <-- Added extra icons for animation
 import Link from "next/link";
+import { getFriendlyAuthError } from "@/lib/authErrorMessages";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -41,6 +44,38 @@ export default function RegisterPage() {
       });
     }
   };
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const resumeRedirectSignup = async () => {
+      try {
+        const result = await getRedirectResult(auth);
+        if (result?.user) {
+          await createUserDocument(
+            result.user.uid,
+            result.user.email,
+            result.user.displayName || "Google User"
+          );
+
+          if (isMounted) {
+            router.push("/dashboard");
+          }
+        }
+      } catch (err: any) {
+        if (isMounted) {
+          setError(getFriendlyAuthError(err, 'signup'));
+          setLoading(false);
+        }
+      }
+    };
+
+    resumeRedirectSignup();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [router]);
 
   // Handle Email & Password Registration
   const handleEmailSignUp = async (e: React.FormEvent) => {
@@ -75,6 +110,7 @@ export default function RegisterPage() {
     setLoading(true);
     setError("");
     const provider = new GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: "select_account" });
     
     try {
       const result = await signInWithPopup(auth, provider);
@@ -86,7 +122,20 @@ export default function RegisterPage() {
       
       router.push("/dashboard");
     } catch (err: any) {
-      setError(err.message || "Failed to sign up with Google");
+      const code = err?.code || "";
+
+      // Fallback for mobile browsers or strict popup environments.
+      if (code === "auth/popup-blocked" || code === "auth/operation-not-supported-in-this-environment") {
+        try {
+          await signInWithRedirect(auth, provider);
+          return;
+        } catch (redirectErr: any) {
+          setError(getFriendlyAuthError(redirectErr, 'signup'));
+        }
+      } else {
+        setError(getFriendlyAuthError(err, 'signup'));
+      }
+    } finally {
       setLoading(false);
     }
   };
