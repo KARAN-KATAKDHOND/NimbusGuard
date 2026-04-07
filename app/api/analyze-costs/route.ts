@@ -25,9 +25,23 @@ export async function POST(request: Request) {
     const connectionDoc = connectionsSnapshot.docs[0];
     const connectionData = connectionDoc.data();
     const connectionId = connectionDoc.id;
+    const region = process.env.MY_APP_AWS_REGION ?? "us-east-1";
+
+    const accessKeyId = process.env.MY_APP_AWS_ACCESS_KEY_ID;
+    const secretAccessKey = process.env.MY_APP_AWS_SECRET_ACCESS_KEY;
+
+    if (!accessKeyId || !secretAccessKey) {
+      return NextResponse.json({ error: "Missing My app AWS credentials in environment variables." }, { status: 500 });
+    }
 
     // 2. Assume the User's IAM Role
-    const stsClient = new STSClient({ region: "us-east-1" });
+    const stsClient = new STSClient({
+      region,
+      credentials: {
+        accessKeyId,
+        secretAccessKey,
+      },
+    });
     const assumedRole = await stsClient.send(new AssumeRoleCommand({
       RoleArn: connectionData.aws_role_arn,
       RoleSessionName: "NimbusGuardDataSync",
@@ -36,7 +50,7 @@ export async function POST(request: Request) {
 
     // 3. Initialize Cost Explorer
     const ceClient = new CostExplorerClient({
-      region: "us-east-1",
+      region,
       credentials: {
         accessKeyId: assumedRole.Credentials!.AccessKeyId!,
         secretAccessKey: assumedRole.Credentials!.SecretAccessKey!,

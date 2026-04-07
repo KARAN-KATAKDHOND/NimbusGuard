@@ -21,11 +21,27 @@ export async function POST(request: Request) {
 
     const connectionData = connectionDoc.data();
     const targetRoleArn = connectionData?.aws_role_arn;
+    const region = process.env.MY_APP_AWS_REGION ?? "us-east-1";
+
+    const accessKeyId = process.env.MY_APP_AWS_ACCESS_KEY_ID;
+    const secretAccessKey = process.env.MY_APP_AWS_SECRET_ACCESS_KEY;
+
+    if (!accessKeyId || !secretAccessKey) {
+      return NextResponse.json(
+        { error: "Missing My app AWS credentials in environment variables." },
+        { status: 500 }
+      );
+    }
 
     // 2. Initialize STS to assume the user's role
-    // This uses your app's AWS credentials automatically from process.env
-    // (You will need AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY in your .env.local later)
-    const stsClient = new STSClient({ region: "us-east-1" });
+    // This uses your app's AWS credentials from the renamed environment variables.
+    const stsClient = new STSClient({
+      region,
+      credentials: {
+        accessKeyId,
+        secretAccessKey,
+      },
+    });
     
     const assumeRoleCommand = new AssumeRoleCommand({
       RoleArn: targetRoleArn,
@@ -41,7 +57,7 @@ export async function POST(request: Request) {
 
     // 3. Initialize Cost Explorer using the temporary credentials we just got
     const ceClient = new CostExplorerClient({
-      region: "us-east-1",
+      region,
       credentials: {
         accessKeyId: assumedRole.Credentials.AccessKeyId!,
         secretAccessKey: assumedRole.Credentials.SecretAccessKey!,

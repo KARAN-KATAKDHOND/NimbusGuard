@@ -36,7 +36,7 @@
 
 <div align="center">
   <h3>🖥️ Main Dashboard</h3>
-  <img src="https://raw.githubusercontent.com/karan-katakdhond/nimbusguard/main/public/dashboard-placeholder.png" alt="NimbusGuard Dashboard" width="800" style="border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);" />
+  <img src="![alt text](image.png)" alt="NimbusGuard Dashboard" width="800" style="border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);" />
   <p><i>Monitor daily spending and service breakdowns.</i></p>
 
   <br />
