@@ -7,8 +7,8 @@ interface AnomalyAlertProps {
 
 export default function AnomalyAlert({ cost, serviceName }: AnomalyAlertProps) {
   return (
-    <div className="mb-8 bg-red-50 dark:bg-red-500/10 border-l-4 border-red-500 p-4 rounded-r-lg flex items-start shadow-sm transition-colors">
-      <AlertCircle className="w-6 h-6 text-red-500 mr-3 mt-0.5" />
+    <div className="mb-8 flex items-start rounded-2xl border border-red-100 border-l-4 border-l-red-500 bg-red-50 p-4 shadow-sm transition-colors dark:border-red-500/20 dark:bg-red-500/10 sm:p-5">
+      <AlertCircle className="mr-3 mt-0.5 h-6 w-6 flex-shrink-0 text-red-500" />
       <div>
         <h3 className="text-red-800 dark:text-red-400 font-bold">Critical Cost Anomaly Detected</h3>
         <p className="text-red-600 dark:text-red-300 mt-1 text-sm">

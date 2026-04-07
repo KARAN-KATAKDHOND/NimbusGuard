@@ -67,7 +67,7 @@ export default function AnomaliesPage() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto pb-12">
+    <div className="mx-auto max-w-5xl pb-12">
       <header className="mb-8">
         <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white flex items-center transition-colors">
           <Activity className="w-8 h-8 mr-3 text-red-500" />
@@ -107,12 +107,12 @@ export default function AnomaliesPage() {
             const spikeMultiplier = (anomaly.actual_cost / anomaly.expected_cost).toFixed(1);
             
             return (
-              <div key={anomaly.id} className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl p-6 shadow-sm hover:shadow-md transition-all relative overflow-hidden">
+              <div key={anomaly.id} className="relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition-all hover:shadow-md dark:border-slate-800 dark:bg-slate-900 sm:p-6">
                 <div className={`absolute left-0 top-0 bottom-0 w-1 ${anomaly.severity.toLowerCase() === 'critical' ? 'bg-red-500' : 'bg-orange-400'}`}></div>
                 
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between md:gap-6">
                   
-                  <div className="flex-1">
+                  <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-3 mb-2">
                       <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold border transition-colors ${getSeverityStyles(anomaly.severity)}`}>
                         {anomaly.severity.toUpperCase()}
@@ -130,7 +130,7 @@ export default function AnomaliesPage() {
                     </p>
                   </div>
 
-                  <div className="flex items-center gap-4 bg-gray-50 dark:bg-slate-800/50 rounded-lg p-4 border border-gray-100 dark:border-slate-700 transition-colors">
+                  <div className="flex flex-wrap items-center gap-4 rounded-xl border border-gray-100 bg-gray-50 p-4 transition-colors dark:border-slate-700 dark:bg-slate-800/50">
                     <div>
                       <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider font-semibold mb-1 transition-colors">Expected</p>
                       <p className="text-lg font-medium text-gray-700 dark:text-gray-200 transition-colors">{formatCurrency(anomaly.expected_cost)}</p>
@@ -145,7 +145,7 @@ export default function AnomaliesPage() {
                     </div>
                   </div>
 
-                  <div className="flex flex-col items-end gap-3 min-w-[140px]">
+                  <div className="flex min-w-0 flex-col items-start gap-3 md:items-end md:min-w-[140px]">
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-sm font-medium transition-colors ${
                       anomaly.status === 'Acknowledged' ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400' :
                       anomaly.status === 'False Positive' ? 'bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-gray-400' :

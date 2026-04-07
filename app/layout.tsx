@@ -26,7 +26,7 @@ export default function RootLayout({
   return (
     // suppressHydrationWarning is required because our context modifies the class/style on mount
     <html lang="en" suppressHydrationWarning>
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors duration-200`}>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen overflow-x-hidden text-slate-900 dark:text-slate-100 transition-colors duration-200`}>
         <SettingsProvider>
           {children}
         </SettingsProvider>
