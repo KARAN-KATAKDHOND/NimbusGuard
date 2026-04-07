@@ -36,13 +36,14 @@
 
 <div align="center">
   <h3>🖥️ Main Dashboard</h3>
-  <img src="![alt text](image.png)" alt="NimbusGuard Dashboard" width="800" style="border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);" />
+  <img width="1903" height="910" alt="image" src="https://github.com/user-attachments/assets/b00647a8-75d3-4563-a192-a3541c79a979" />
   <p><i>Monitor daily spending and service breakdowns.</i></p>
 
   <br />
 
   <h3>🚨 Anomaly Reports & Alerts</h3>
-  <img src="https://raw.githubusercontent.com/karan-katakdhond/nimbusguard/main/public/anomaly-placeholder.png" alt="Anomaly Alerts" width="800" style="border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);" />
+ <img width="1902" height="912" alt="image" src="https://github.com/user-attachments/assets/f431659d-7e99-4747-867b-fabd361c1bff" />
+
   <p><i>View detected anomalies and Slack notification integrations.</i></p>
 </div>
 
