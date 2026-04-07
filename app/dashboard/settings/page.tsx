@@ -24,17 +24,17 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto pb-12 relative">
+    <div className="relative mx-auto max-w-4xl pb-12">
       
       {/* Toast Notification */}
-      <div className={`fixed bottom-8 right-8 bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-4 py-3 rounded-lg shadow-xl flex items-center transition-all duration-300 z-50 ${showToast ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}`}>
-        <CheckCircle2 className="w-5 h-5 mr-2 text-green-400 dark:text-green-600" />
+      <div className={`fixed bottom-4 left-4 right-4 z-50 flex items-center rounded-lg bg-gray-900 px-4 py-3 text-white shadow-xl transition-all duration-300 dark:bg-white dark:text-gray-900 sm:left-auto sm:right-8 sm:bottom-8 sm:max-w-sm ${showToast ? 'opacity-100 translate-y-0' : 'pointer-events-none translate-y-4 opacity-0'}`}>
+        <CheckCircle2 className="mr-2 h-5 w-5 text-green-400 dark:text-green-600" />
         <span className="font-medium text-sm">Preferences updated</span>
       </div>
 
       <header className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white flex items-center transition-colors">
-          <SettingsIcon className="w-8 h-8 mr-3 text-blue-500" />
+        <h1 className="flex items-center text-3xl font-bold tracking-tight text-gray-900 transition-colors dark:text-white">
+          <SettingsIcon className="mr-3 h-8 w-8 text-blue-500" />
           Preferences
         </h1>
         <p className="text-gray-500 dark:text-gray-400 mt-2 transition-colors">
@@ -44,7 +44,7 @@ export default function SettingsPage() {
 
       <div className="space-y-8">
         {/* THEME SECTION */}
-        <section className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl p-6 md:p-8 shadow-sm transition-colors">
+        <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-colors dark:border-slate-800 dark:bg-slate-900 md:p-8">
           <div className="mb-6">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Appearance</h2>
             <p className="text-sm text-gray-500 dark:text-gray-400">Select your preferred color theme for the dashboard.</p>
@@ -85,7 +85,7 @@ export default function SettingsPage() {
         </section>
 
         {/* FONT SIZE SECTION */}
-        <section className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl p-6 md:p-8 shadow-sm transition-colors">
+        <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-colors dark:border-slate-800 dark:bg-slate-900 md:p-8">
           <div className="mb-6">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
               <Type className="w-5 h-5 mr-2 text-gray-500 dark:text-gray-400" />

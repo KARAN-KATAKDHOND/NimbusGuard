@@ -122,10 +122,10 @@ export default function AnomalyDetailsPage() {
       </button>
 
       {/* HEADER CARD */}
-      <div className={`bg-white dark:bg-slate-900 rounded-2xl p-8 border-t-4 shadow-sm transition-colors mb-8 ${isCritical ? 'border-red-500' : 'border-orange-400'}`}>
-        <div className="flex flex-col md:flex-row justify-between md:items-start gap-6">
+      <div className={`mb-8 rounded-2xl border-t-4 bg-white p-6 shadow-sm transition-colors dark:bg-slate-900 sm:p-8 ${isCritical ? 'border-red-500' : 'border-orange-400'}`}>
+        <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
           <div>
-            <div className="flex items-center gap-3 mb-3">
+            <div className="mb-3 flex flex-wrap items-center gap-3">
               <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${isCritical ? 'bg-red-100 dark:bg-red-500/20 text-red-800 dark:text-red-400' : 'bg-orange-100 dark:bg-orange-500/20 text-orange-800 dark:text-orange-400'}`}>
                 {anomaly.severity} Priority
               </span>
@@ -147,7 +147,7 @@ export default function AnomalyDetailsPage() {
             </h1>
           </div>
 
-          <div className="bg-gray-50 dark:bg-slate-800/50 rounded-xl p-6 min-w-[240px] border border-gray-100 dark:border-slate-700">
+          <div className="w-full rounded-xl border border-gray-100 bg-gray-50 p-6 md:min-w-[240px] md:w-auto dark:border-slate-700 dark:bg-slate-800/50">
             <p className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Financial Impact</p>
             <p className="text-4xl font-bold text-red-600 dark:text-red-400 mb-2">{formatCurrency(anomaly.actual_cost)}</p>
             <p className="text-sm text-gray-600 dark:text-gray-400 border-t border-gray-200 dark:border-slate-700 pt-2 mt-2">
@@ -157,21 +157,21 @@ export default function AnomalyDetailsPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:gap-8">
         
         {/* DETAILED REGIONAL BREAKDOWN (2 Columns wide) */}
-        <div className="lg:col-span-2 bg-white dark:bg-slate-900 p-6 rounded-xl border border-gray-200 dark:border-slate-800 shadow-sm transition-colors">
-          <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center mb-6">
-            <Globe className="w-5 h-5 mr-2 text-blue-500" />
+        <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition-colors lg:col-span-2 dark:border-slate-800 dark:bg-slate-900 sm:p-6">
+          <h2 className="mb-6 flex items-center text-lg font-bold text-gray-900 dark:text-white">
+            <Globe className="mr-2 h-5 w-5 text-blue-500" />
             Detailed Regional Analysis
           </h2>
           
           <div className="space-y-6">
             {detailedData.map((region, idx) => (
-              <div key={idx} className="p-5 bg-gray-50 dark:bg-slate-800/50 rounded-xl border border-gray-100 dark:border-slate-700 transition-colors">
+              <div key={idx} className="rounded-xl border border-gray-100 bg-gray-50 p-5 transition-colors dark:border-slate-700 dark:bg-slate-800/50">
                 {/* Region Header */}
-                <div className="flex justify-between items-end mb-3">
-                  <span className="font-bold text-gray-900 dark:text-white text-lg">{region.region}</span>
+                <div className="mb-3 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+                  <span className="text-lg font-bold text-gray-900 dark:text-white">{region.region}</span>
                   <span className="font-bold text-red-600 dark:text-red-400">{formatCurrency(region.cost)}</span>
                 </div>
                 
@@ -181,18 +181,18 @@ export default function AnomalyDetailsPage() {
                 </div>
 
                 {/* Granular Details */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm mt-4">
+                <div className="mt-4 grid grid-cols-1 gap-4 text-sm md:grid-cols-2">
                   <div>
-                    <p className="flex items-center text-gray-500 dark:text-gray-400 font-semibold mb-1">
-                      <Cpu className="w-4 h-4 mr-1.5" /> Active Resources
+                    <p className="mb-1 flex items-center font-semibold text-gray-500 dark:text-gray-400">
+                      <Cpu className="mr-1.5 h-4 w-4" /> Active Resources
                     </p>
-                    <p className="text-gray-800 dark:text-gray-200 font-medium">{region.activeResources}</p>
+                    <p className="font-medium text-gray-800 dark:text-gray-200">{region.activeResources}</p>
                   </div>
                   <div>
-                    <p className="flex items-center text-gray-500 dark:text-gray-400 font-semibold mb-1">
-                      <GitPullRequest className="w-4 h-4 mr-1.5" /> Detected Changes
+                    <p className="mb-1 flex items-center font-semibold text-gray-500 dark:text-gray-400">
+                      <GitPullRequest className="mr-1.5 h-4 w-4" /> Detected Changes
                     </p>
-                    <p className="text-gray-800 dark:text-gray-200 leading-relaxed">{region.recentChange}</p>
+                    <p className="leading-relaxed text-gray-800 dark:text-gray-200">{region.recentChange}</p>
                   </div>
                 </div>
               </div>
@@ -201,10 +201,10 @@ export default function AnomalyDetailsPage() {
         </div>
 
         {/* ACTION / NEXT STEPS CARD (1 Column wide) */}
-        <div className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-gray-200 dark:border-slate-800 shadow-sm transition-colors flex flex-col justify-between">
+        <div className="flex flex-col justify-between rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition-colors dark:border-slate-800 dark:bg-slate-900 sm:p-6">
           <div>
-            <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center mb-6">
-              <ShieldAlert className="w-5 h-5 mr-2 text-red-500" />
+            <h2 className="mb-6 flex items-center text-lg font-bold text-gray-900 dark:text-white">
+              <ShieldAlert className="mr-2 h-5 w-5 text-red-500" />
               Response Center
             </h2>
             

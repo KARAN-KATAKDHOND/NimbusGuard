@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { auth } from "@/lib/firebaseClient";
-import { GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword } from "firebase/auth";
+import { GoogleAuthProvider, getRedirectResult, signInWithPopup, signInWithEmailAndPassword, signInWithRedirect } from "firebase/auth";
 import { useRouter } from "next/navigation";
 import { CloudLightning, Mail, Lock, Cloud, Server, Activity } from "lucide-react"; // <-- Added icons
 import Link from "next/link";
+import { getFriendlyAuthError } from "@/lib/authErrorMessages";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -13,6 +14,30 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const resumeRedirectLogin = async () => {
+      try {
+        const result = await getRedirectResult(auth);
+        if (result?.user && isMounted) {
+          router.push("/dashboard");
+        }
+      } catch (err: any) {
+        if (isMounted) {
+          setError(getFriendlyAuthError(err, 'login'));
+          setLoading(false);
+        }
+      }
+    };
+
+    resumeRedirectLogin();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [router]);
 
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,12 +59,26 @@ export default function LoginPage() {
     setLoading(true);
     setError("");
     const provider = new GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: "select_account" });
     
     try {
       await signInWithPopup(auth, provider);
       router.push("/dashboard");
     } catch (err: any) {
-      setError(err.message || "Failed to log in with Google");
+      const code = err?.code || "";
+
+      // Fallback for mobile browsers or strict popup environments.
+      if (code === "auth/popup-blocked" || code === "auth/operation-not-supported-in-this-environment") {
+        try {
+          await signInWithRedirect(auth, provider);
+          return;
+        } catch (redirectErr: any) {
+          setError(getFriendlyAuthError(redirectErr, 'login'));
+        }
+      } else {
+        setError(getFriendlyAuthError(err, 'login'));
+      }
+    } finally {
       setLoading(false);
     }
   };
