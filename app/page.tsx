@@ -10,7 +10,7 @@ export default function Home() {
             <CloudLightning className="w-12 h-12 text-white" />
           </div>
         </div>
-        
+
         <div className="space-y-2">
           <h1 className="text-4xl font-bold tracking-tight text-white">NimbusGuard <br/>Anomaly Detector</h1>
           <p className="text-slate-400 text-lg">
@@ -25,7 +25,6 @@ export default function Home() {
           >
             Log in to Dashboard
           </Link>
-          
         </div>
       </div>
     </div>

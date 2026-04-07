@@ -148,26 +148,27 @@ export default function DashboardOverview() {
   // --- MAIN COMPONENT UI ---
   return (
     <>
-      <header className="mb-8 flex justify-between items-end" suppressHydrationWarning>
+      <header className="mb-6 flex flex-col gap-4 lg:mb-8 lg:flex-row lg:items-end lg:justify-between" suppressHydrationWarning>
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white transition-colors">Workspace Overview</h1>
-          <p className="text-gray-500 dark:text-gray-400 mt-1 transition-colors">Live Cloud Cost Analysis</p>
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900 transition-colors dark:text-white">Workspace Overview</h1>
+          <p className="mt-1 text-gray-500 transition-colors dark:text-gray-400">Live Cloud Cost Analysis</p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap lg:justify-end">
           <button 
             onClick={injectWorstCaseAnomaly}
-            className="flex items-center justify-center w-10 h-10 bg-red-50 dark:bg-red-500/10 text-red-500 hover:bg-red-100 dark:hover:bg-red-500/20 hover:text-red-600 rounded-lg transition-colors border border-red-100 dark:border-red-500/20 shadow-sm active:scale-95 transform duration-150"
+            className="flex w-full items-center justify-center rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm font-medium text-red-600 shadow-sm transition-colors duration-150 hover:bg-red-100 active:scale-95 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-400 dark:hover:bg-red-500/20 sm:w-auto"
             title="Inject Fake Anomaly (Click to accumulate costs!)"
           >
-            <AlertTriangle className="w-4 h-4" />
+            <AlertTriangle className="mr-2 h-4 w-4" />
+            Demo Anomaly
           </button>
 
           <button 
             onClick={handleSyncData}
             disabled={isSyncing || isLoading}
-            className="flex items-center bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 px-4 py-2 rounded-lg text-sm font-medium text-gray-700 dark:text-slate-200 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors shadow-sm disabled:opacity-50"
+            className="flex w-full items-center justify-center rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50 disabled:opacity-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 sm:w-auto"
           >
-            <RefreshCw className={`w-4 h-4 mr-2 text-gray-500 dark:text-gray-400 ${isSyncing ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`mr-2 h-4 w-4 text-gray-500 dark:text-gray-400 ${isSyncing ? 'animate-spin' : ''}`} />
             {isSyncing ? 'Syncing...' : 'Sync AWS Data'}
           </button>
         </div>
@@ -190,38 +191,38 @@ export default function DashboardOverview() {
         <AnomalyAlert cost={latestCost} serviceName={serviceBreakdown[0]?.[0] || "Multiple Services"} />
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:gap-8">
         <div className="lg:col-span-2">
            {isLoading ? (
-             <div className="h-96 w-full bg-gray-100 dark:bg-slate-800 animate-pulse rounded-xl border border-gray-200 dark:border-slate-700 flex items-center justify-center transition-colors">
-                <Loader2 className="w-8 h-8 text-gray-400 animate-spin" />
+             <div className="flex min-h-[18rem] w-full items-center justify-center rounded-2xl border border-gray-200 bg-gray-100 transition-colors dark:border-slate-700 dark:bg-slate-800 md:h-96">
+                <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
              </div>
            ) : metrics.length > 0 ? (
              <CostChart data={chartData} />
            ) : (
-             <div className="h-96 w-full bg-white dark:bg-slate-900 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-slate-800 flex flex-col items-center justify-center text-gray-500 dark:text-gray-400 transition-colors">
-               <Activity className="w-12 h-12 text-gray-300 dark:text-gray-600 mb-4" />
+             <div className="flex min-h-[18rem] w-full flex-col items-center justify-center rounded-2xl border border-gray-100 bg-white p-6 text-center text-gray-500 shadow-sm transition-colors dark:border-slate-800 dark:bg-slate-900 dark:text-gray-400 md:h-96">
+               <Activity className="mb-4 h-12 w-12 text-gray-300 dark:text-gray-600" />
                <p>No cost data available.</p>
                <p className="text-sm">Click "Sync AWS Data" to pull your billing history.</p>
              </div>
            )}
         </div>
 
-        <div className="bg-white dark:bg-slate-900 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-slate-800 flex flex-col h-full transition-colors">
-          <h3 className="text-lg font-semibold mb-4 text-gray-800 dark:text-white flex items-center">
-            <Server className="w-5 h-5 mr-2 text-blue-500" />
+        <div className="flex h-full flex-col rounded-2xl border border-gray-100 bg-white p-5 shadow-sm transition-colors dark:border-slate-800 dark:bg-slate-900 sm:p-6">
+          <h3 className="mb-4 flex items-center text-lg font-semibold text-gray-800 dark:text-white">
+            <Server className="mr-2 h-5 w-5 text-blue-500" />
             Service Breakdown
           </h3>
           
-          <div className="space-y-3 flex-1 overflow-y-auto max-h-64 pr-2">
+          <div className="max-h-72 flex-1 space-y-3 overflow-y-auto pr-1 sm:max-h-80">
             {isLoading ? (
               [1, 2, 3].map(i => (
-                <div key={i} className="h-12 bg-gray-100 dark:bg-slate-800 animate-pulse rounded-lg w-full"></div>
+                <div key={i} className="h-12 w-full animate-pulse rounded-xl bg-gray-100 dark:bg-slate-800"></div>
               ))
             ) : serviceBreakdown.length > 0 ? (
               serviceBreakdown.map(([serviceName, cost], index) => (
-                <div key={serviceName} className={`flex justify-between items-center p-3 rounded-lg border transition-colors ${index === 0 && isAnomaly ? 'bg-red-50 dark:bg-red-500/10 border-red-100 dark:border-red-500/20' : 'bg-gray-50 dark:bg-slate-800/50 border-gray-100 dark:border-slate-700'}`}>
-                  <span className={`font-medium ${index === 0 && isAnomaly ? 'text-red-900 dark:text-red-400' : 'text-gray-700 dark:text-gray-300'}`}>
+                <div key={serviceName} className={`flex flex-col gap-2 rounded-xl border p-3 transition-colors sm:flex-row sm:items-center sm:justify-between ${index === 0 && isAnomaly ? 'border-red-100 bg-red-50 dark:border-red-500/20 dark:bg-red-500/10' : 'border-gray-100 bg-gray-50 dark:border-slate-700 dark:bg-slate-800/50'}`}>
+                  <span className={`font-medium break-words ${index === 0 && isAnomaly ? 'text-red-900 dark:text-red-400' : 'text-gray-700 dark:text-gray-300'}`}>
                     {serviceName.replace(/_/g, ' ')}
                   </span>
                   <span className={`font-bold ${index === 0 && isAnomaly ? 'text-red-700 dark:text-red-500' : 'text-gray-600 dark:text-gray-400'}`}>
@@ -234,9 +235,9 @@ export default function DashboardOverview() {
             )}
           </div>
 
-          <div className="mt-8 pt-6 border-t border-gray-100 dark:border-slate-800 transition-colors">
-            <h3 className="text-sm font-semibold mb-3 text-gray-400 dark:text-gray-500 uppercase tracking-wider flex items-center">
-              <Activity className="w-4 h-4 mr-2" />
+          <div className="mt-8 border-t border-gray-100 pt-6 transition-colors dark:border-slate-800">
+            <h3 className="mb-3 flex items-center text-sm font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
+              <Activity className="mr-2 h-4 w-4" />
               System Status
             </h3>
             <div className="text-sm space-y-2">
