@@ -32,7 +32,6 @@
 
 ## 📸 Visuals
 
-*(Replace the placeholder links with your actual project screenshots)*
 
 <div align="center">
   <h3>🖥️ Main Dashboard</h3>
